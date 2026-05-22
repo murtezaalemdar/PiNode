@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pi Fleet | Node Yönetimi</title>
+    <style>
+        :root { --bg: #0f172a; --panel: #1e293b; --primary: #f59e0b; --text: #f8fafc; --text-muted: #94a3b8; --border: #334155; }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); }
+        .header { background: var(--panel); padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header-title { display: flex; align-items: center; gap: 15px; }
+        .header h1 { margin: 0; color: var(--primary); font-size: 22px; }
+        .header button { padding: 8px 16px; font-size: 14px; }
+        .logout { color: var(--text-muted); text-decoration: none; font-size: 14px; }
+        .logout:hover { color: #fff; }
+        
+        .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
+        
+        /* System Monitor */
+        .sys-monitor { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+        .sys-card { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
+        .sys-icon { font-size: 24px; color: var(--primary); }
+        .sys-info h4 { margin: 0; font-size: 12px; color: var(--text-muted); text-transform: uppercase; }
+        .sys-info span { font-size: 18px; font-weight: bold; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; }
+        
+        .card { background: var(--panel); border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; }
+        .card-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.1); }
+        .card-header h3 { margin: 0; font-size: 18px; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .edit-icon { font-size: 12px; cursor: pointer; color: var(--text-muted); padding: 4px; border-radius: 4px; }
+        .edit-icon:hover { color: #fff; background: rgba(255,255,255,0.1); }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .status-up { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .status-down { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        
+        .card-body { padding: 20px; flex: 1; }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px; }
+        .stat-label { color: var(--text-muted); }
+        .stat-value { font-weight: 500; font-family: monospace; }
+        
+        .card-footer { padding: 15px 20px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.1); display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-sm { flex: 1; padding: 8px; font-size: 12px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 5px; cursor: pointer; transition: 0.2s; min-width: 60px; text-align: center; }
+        .btn-sm:hover { background: rgba(255,255,255,0.2); }
+        .btn-sm.primary { background: rgba(245, 158, 11, 0.2); color: var(--primary); border-color: rgba(245, 158, 11, 0.3); }
+        .btn-sm.primary:hover { background: rgba(245, 158, 11, 0.3); }
+        .btn-sm.danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2); }
+        .btn-sm.danger:hover { background: rgba(239, 68, 68, 0.2); }
+        
+        button { background: var(--primary); color: #000; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #d97706; }
+        
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: var(--panel); width: 100%; max-width: 500px; border-radius: 12px; padding: 25px; border: 1px solid var(--border); box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h2 { margin: 0; font-size: 20px; color: var(--primary); }
+        .close { color: var(--text-muted); cursor: pointer; font-size: 24px; font-weight: bold; }
+        .close:hover { color: #fff; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 14px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 6px; color: #fff; box-sizing: border-box; }
+        .form-group textarea { height: 120px; font-family: monospace; resize: vertical; }
+    
+        @media (max-width: 768px) {
+            .sys-monitor { grid-template-columns: repeat(2, 1fr); }
+            @media (max-width: 480px) { .sys-monitor { grid-template-columns: 1fr; } }
+            .header { flex-direction: column; gap: 15px; align-items: stretch; text-align: center; }
+            .header-title { flex-direction: column; justify-content: center; }
+            .grid { grid-template-columns: 1fr; }
+            .card-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+            .card-footer .btn-sm { width: 100%; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="updateBanner" style="display: none; background: linear-gradient(90deg, #ff9800, #f44336); color: white; text-align: center; padding: 12px; font-weight: bold; font-size: 15px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        🚀 Yeni Pi Node Sürümü Çıktı: <span id="newVersionText"></span> 
+        <button onclick="triggerUpdate()" id="updateBtn" style="margin-left: 15px; background: white; color: #d32f2f; padding: 6px 15px; border-radius: 20px; font-weight: bold; border: none; cursor: pointer; transition: 0.2s;">✨ Tümünü Güncelle</button>
+    </div>
+
+    <div class="header">
+        <div class="header-title">
+            <h1>Pi Fleet <span style="font-size: 14px; color: var(--text-muted); font-weight: normal; margin-left: 10px; padding: 4px 10px; background: rgba(255,255,255,0.05); border-radius: 20px; border: 1px solid var(--border);">🌍 Dış IP: <span id="publicIpTxt" style="color: #fff; font-family: monospace;">-</span></span></h1>
+            <button onclick="openSettingsModal()" style="margin-right: 10px; background: rgba(255,255,255,0.1); border: 1px solid var(--border);">⚙️ Ayarlar</button>
+            <button onclick="openCreateModal()">+ Yeni Node Ekle</button>
+        </div>
+        <a href="/logout" class="logout">Çıkış Yap</a>
+    </div>
+
+    <div class="container">
+        <!-- System Monitor -->
+        <div class="sys-monitor">
+            <div class="sys-card">
+                <div class="sys-icon">💻</div>
+                <div class="sys-info"><h4>CPU KULLANIMI</h4><span id="sysCpu">-</span></div>
+            </div>
+            <div class="sys-card">
+                <div class="sys-icon">🧠</div>
+                <div class="sys-info"><h4>RAM KULLANIMI</h4><span id="sysRam">-</span></div>
+            </div>
+            <div class="sys-card">
+                <div class="sys-icon">💾</div>
+                <div class="sys-info"><h4>DİSK (Ana Dizin)</h4><span id="sysDisk" style="font-size:14px; display:block; margin-bottom:3px;">-</span><span id="sysDiskIo" style="font-size:14px; display:block; color:#ef4444; font-weight:bold;">I/O: -</span></div>
+            </div>
+            <div class="sys-card">
+                <div class="sys-icon">🌡️</div>
+                <div class="sys-info"><h4>SICAKLIK</h4><span id="sysTemp">-</span></div>
+            </div>
+        </div>
+
+        <div class="grid" id="nodesGrid">
+            <div style="color:var(--text-muted)">Yükleniyor...</div>
+        </div>
+    </div>
+
+    <!-- Create Node Modal -->
+    <div class="modal" id="createModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Yeni Node Oluştur</h2>
+                <span class="close" onclick="closeModal('createModal')">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Node İsmi</label>
+                <input type="text" id="newNodeName" placeholder="Örn: Mürteza Node 1">
+            </div>
+            <button onclick="createNode()" style="width:100%">Oluştur ve Başlat</button>
+        </div>
+    </div>
+
+    <!-- Edit UUID Modal -->
+    <div class="modal" id="uuidModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>UUID Kimlik Ayarı</h2>
+                <span class="close" onclick="closeModal('uuidModal')">&times;</span>
+            </div>
+            <p style="font-size:13px; color:var(--text-muted); margin-top:-10px; margin-bottom:15px;">Bu Node için kayıtlı olan kimlik dosyası içeriğini aşağıdan görüntüleyebilir veya düzenleyebilirsiniz.</p>
+            <div class="form-group">
+                <textarea id="uuidContent" placeholder="Kimlik içeriği buraya..."></textarea>
+            </div>
+            <input type="hidden" id="activeNodeId">
+            <button onclick="saveUUID()" style="width:100%">Değişiklikleri Kaydet</button>
+        </div>
+    </div>
+
+    <!-- Rename Node Modal -->
+    <div class="modal" id="renameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Node İsmini Düzenle</h2>
+                <span class="close" onclick="closeModal('renameModal')">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Yeni İsim</label>
+                <input type="text" id="renameNodeName" placeholder="Yeni İsim">
+            </div>
+            <input type="hidden" id="renameNodeId">
+            <button onclick="saveRename()" style="width:100%">Güncelle</button>
+        </div>
+    </div>
+
+    <script>
+        async function loadSystem() {
+            try {
+                const res = await fetch('/api/system');
+                const data = await res.json();
+                document.getElementById('sysCpu').textContent = data.cpu;
+                document.getElementById('sysRam').textContent = `${data.ram_percent} (${data.ram_used} / ${data.ram_total})`;
+                document.getElementById('sysDisk').textContent = `${data.disk_percent} (${data.disk_used} / ${data.disk_total})`;
+                document.getElementById('sysDiskIo').textContent = 'I/O Meşguliyet: ' + (data.disk_io || 'N/A');
+                document.getElementById('sysTemp').textContent = data.temp;
+                if(document.getElementById('publicIpTxt')) document.getElementById('publicIpTxt').textContent = data.public_ip || '-';
+            } catch(e) {}
+        }
+
+        async function loadNodes() {
+            try {
+                const res = await fetch('/api/nodes');
+                const nodes = await res.json();
+                
+                const grid = document.getElementById('nodesGrid');
+                grid.innerHTML = '';
+                
+                if(nodes.length === 0) {
+                    grid.innerHTML = '<div style="color:var(--text-muted); grid-column: 1 / -1; text-align:center; padding: 40px;">Henüz hiç Node oluşturulmamış. "Yeni Node Ekle" butonunu kullanın.</div>';
+                    return;
+                }
+                
+                nodes.forEach(node => {
+                    const isUp = node.status.includes('Up');
+                    const badgeClass = isUp ? 'status-up' : 'status-down';
+                    
+                    const card = `
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>${node.name} <span class="edit-icon" title="İsmi Değiştir" onclick="openRenameModal('${node.id}', '${node.name}')">✏️</span></h3>
+                                <span class="status-badge ${badgeClass}">${isUp ? 'ÇALIŞIYOR' : 'DURDURULDU'}</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="stat-row">
+                                    <span class="stat-label">Port Bloğu:</span>
+                                    <span class="stat-value">${node.port_prefix}1 - ${node.port_prefix}3</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Senkronizasyon (Ledger):</span>
+                                    <span class="stat-value" style="color:var(--primary)">${node.sync_status}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Node Durumu (State):</span>
+                                    <div style="text-align: right">
+                                        <span class="stat-value" style="color:#10b981">${node.state}</span>
+                                        ${node.detail ? `<div style="font-size: 10px; color: var(--text-muted); margin-top: 2px; max-width: 180px; line-height: 1.2;">${node.detail}</div>` : ''}
+                                    </div>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Gelen/Giden Bağlantı:</span>
+                                    <span class="stat-value">${node.incoming} / 8</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Protokol:</span>
+                                    <span class="stat-value">v${node.protocol}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Kimlik (UUID):</span>
+                                    <span class="stat-value" style="font-size:12px; max-width: 150px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                        ${node.uuid ? '✅ ' + node.uuid : '❌ Tanımsız'}
+                                    </span>
+                                </div>
+                                <div class="stat-row" style="margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 10px;">
+                                    <span class="stat-label" style="display:flex; align-items:center; gap:5px;">🛠️ Watchdog (Oto-Başlat):</span>
+                                    <span class="stat-value">
+                                        <button class="btn-sm" style="padding: 4px 12px; font-size: 11px; font-weight:bold; min-width: 70px; border-radius: 12px; ${node.auto_restart ? 'background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.5); box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);' : 'background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border);'}" onclick="toggleRestart('${node.id}')">${node.auto_restart ? 'AKTİF' : 'KAPALI'}</button>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                ${isUp 
+                                    ? `<button class="btn-sm" onclick="nodeAction('${node.id}', 'restart')">Restart</button>
+                                       <button class="btn-sm" onclick="nodeAction('${node.id}', 'stop')">Durdur</button>`
+                                    : `<button class="btn-sm primary" onclick="nodeAction('${node.id}', 'start')">Başlat</button>`
+                                }
+                                <button class="btn-sm primary" onclick="openUuidModal('${node.id}')">UUID</button>
+                                <button class="btn-sm danger" onclick="deleteNode('${node.id}')">Sil</button>
+                            </div>
+                        </div>
+                    `;
+                    grid.innerHTML += card;
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function openCreateModal() { document.getElementById('createModal').style.display = 'flex'; }
+        
+        async function openUuidModal(id) { 
+            document.getElementById('activeNodeId').value = id;
+            const contentArea = document.getElementById('uuidContent');
+            contentArea.value = 'Sunucudan yükleniyor...';
+            document.getElementById('uuidModal').style.display = 'flex'; 
+            
+            try {
+                const res = await fetch(`/api/nodes/${id}/uuid`);
+                const data = await res.json();
+                if(data.success && data.content) {
+                    contentArea.value = data.content;
+                } else {
+                    contentArea.value = '';
+                }
+            } catch(e) {
+                contentArea.value = '';
+            }
+        }
+
+        function openRenameModal(id, currentName) {
+            document.getElementById('renameNodeId').value = id;
+            document.getElementById('renameNodeName').value = currentName;
+            document.getElementById('renameModal').style.display = 'flex';
+        }
+
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        async function createNode() {
+            const name = document.getElementById('newNodeName').value || 'Yeni Node';
+            try {
+                await fetch('/api/nodes/create', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({name: name})
+                });
+                closeModal('createModal');
+                document.getElementById('newNodeName').value = '';
+                loadNodes();
+            } catch (e) { alert('Hata: ' + e); }
+        }
+
+        async function nodeAction(id, action) {
+            try {
+                const res = await fetch(`/api/nodes/${id}/action`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: action})
+                });
+                const data = await res.json();
+                if(!data.success) {
+                    alert('⚠️ BİLGİ: ' + data.message);
+                }
+                loadNodes();
+            } catch (e) { alert('Hata: ' + e); }
+        }
+
+        async function deleteNode(id) {
+            if(!confirm('Bu Node tamamen silinecek. Emin misiniz?')) return;
+            try {
+                await fetch(`/api/nodes/${id}/delete`, { method: 'POST' });
+                loadNodes();
+            } catch (e) { alert('Hata: ' + e); }
+        }
+
+        async function toggleRestart(id) {
+            try {
+                await fetch(`/api/nodes/${id}/toggle-restart`, { method: 'POST' });
+                loadNodes();
+            } catch (e) { alert('Hata: ' + e); }
+        }
+
+        async function saveUUID() {
+            const id = document.getElementById('activeNodeId').value;
+            const content = document.getElementById('uuidContent').value;
+            try {
+                await fetch(`/api/nodes/${id}/uuid`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({content: content})
+                });
+                closeModal('uuidModal');
+                loadNodes();
+            } catch (e) { alert('Hata: ' + e); }
+        }
+
+        async function saveRename() {
+            const id = document.getElementById('renameNodeId').value;
+            const name = document.getElementById('renameNodeName').value;
+            try {
+                await fetch(`/api/nodes/${id}/rename`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({name: name})
+                });
+                closeModal('renameModal');
+                loadNodes();
+            } catch (e) { alert('Hata: ' + e); }
+        }
+
+        loadSystem();
+        loadNodes();
+        setInterval(() => { loadSystem(); loadNodes(); }, 10000);
+    
+        function openSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'flex';
+            fetchSettings();
+        }
+        function closeSettingsModal(e) {
+            if (e.target === document.getElementById('settingsModal')) {
+                document.getElementById('settingsModal').style.display = 'none';
+            }
+        }
+        
+        function fetchSettings() {
+            fetch('/api/settings').then(r=>r.json()).then(data => {
+                const btnOn = document.getElementById('btnAutoOn');
+                const btnOff = document.getElementById('btnAutoOff');
+                
+                if (data.auto_update === '1') {
+                    btnOn.style.background = '#00e676';
+                    btnOn.style.color = '#000';
+                    btnOff.style.background = 'var(--bg-card)';
+                    btnOff.style.color = 'var(--text-muted)';
+                } else {
+                    btnOff.style.background = '#ff4b4b';
+                    btnOff.style.color = '#fff';
+                    btnOn.style.background = 'var(--bg-card)';
+                    btnOn.style.color = 'var(--text-muted)';
+                }
+                
+                document.getElementById('currentImageCode').textContent = data.current_image || '-';
+            });
+        }
+        
+        function setAutoUpdate(val) {
+            fetch('/api/settings', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({auto_update: val})
+            }).then(() => fetchSettings());
+        }
+        
+        function checkUpdates() {
+            fetch('/api/settings').then(r=>r.json()).then(data => {
+                const banner = document.getElementById('updateBanner');
+                if(!banner) return;
+                if (data.is_updating) {
+                    banner.style.display = 'block';
+                    banner.style.background = 'linear-gradient(90deg, #2196F3, #9C27B0)';
+                    banner.innerHTML = '⚙️ Sistem şu anda tüm Node ları yeni sürüme güncelliyor... Lütfen bekleyin.';
+                } else if (data.update_available) {
+                    banner.style.display = 'block';
+                    banner.style.background = 'linear-gradient(90deg, #ff9800, #f44336)';
+                    let v = data.update_available.split(':').pop();
+                    document.getElementById('newVersionText').textContent = v;
+                } else {
+                    banner.style.display = 'none';
+                }
+            });
+        }
+        
+        function triggerUpdate() {
+            const btn = document.getElementById('updateBtn');
+            btn.textContent = "⏳ Başlatılıyor...";
+            fetch('/api/update_all', {method: 'POST'}).then(r=>r.json()).then(res => {
+                alert(res.msg);
+                checkUpdates();
+            });
+        }
+        
+        function changePassword() {
+            const pwd = document.getElementById('newAdminPassword').value;
+            if(!pwd) return;
+            fetch('/api/change_password', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({password: pwd})
+            }).then(r=>r.json()).then(res => {
+                alert(res.msg);
+                if(res.success) document.getElementById('newAdminPassword').value = '';
+            });
+        }
+        
+        setInterval(checkUpdates, 15000);
+        checkUpdates();
+
+</script>
+
+    <div class="modal" id="settingsModal" onclick="closeSettingsModal(event)">
+        <div class="modal-content">
+            <div class="modal-header"><h2>⚙️ Sistem Ayarları</h2><span class="close" onclick="document.getElementById('settingsModal').style.display='none'">&times;</span></div>
+            <div class="form-group" style="margin-top:20px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+                <label>Otomatik Güncelleme (Auto-Update)</label>
+                <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 10px;">Yeni bir Pi Node sürümü çıktığında sistemin Node'ları kendi kendine güncellemesine izin verir.</p>
+                <div style="display: flex; gap: 10px;">
+                    <button id="btnAutoOn" onclick="setAutoUpdate('1')" style="flex:1; background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border);">AÇIK</button>
+                    <button id="btnAutoOff" onclick="setAutoUpdate('0')" style="flex:1; background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border);">KAPALI</button>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top:20px; text-align: center;">
+                <p style="color: var(--text-muted); font-size: 13px;">Mevcut İmaj:</p>
+                <code id="currentImageCode" style="display: block; background: #000; padding: 8px; border-radius: 6px; font-size: 11px; color: #00e676; word-break: break-all;">Yükleniyor...</code>
+            </div>
+            
+            <div class="form-group" style="margin-top:20px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+                <label>Kullanıcı Şifresi Değiştir (Giriş Şifresi)</label>
+                <input type="text" id="newAdminPassword" placeholder="Yeni Şifre Yazın..." style="margin-bottom:10px;">
+                <button onclick="changePassword()" style="width:100%; background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold;">Şifreyi Güncelle</button>
+            </div>
+            <button class="btn-cancel" onclick="document.getElementById('settingsModal').style.display='none'" style="margin-top: 20px; width: 100%;">Kapat</button>
+        </div>
+    </div>
+
+</body>
+</html>
