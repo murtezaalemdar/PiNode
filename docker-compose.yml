@@ -1,0 +1,26 @@
+
+name: pi-node
+
+services:
+  mainnet:
+    image: pinetwork/pi-node-docker:organization-mainnet-v1.0-p22.1
+    container_name: mainnet
+    env_file:
+      - ./.env
+    volumes:
+      - /root/pi-node/docker_volumes/mainnet/stellar:/opt/stellar
+      - /root/pi-node/docker_volumes/mainnet/supervisor_logs:/var/log/supervisor
+      - /root/pi-node/docker_volumes/mainnet/history:/history
+    ports:
+      # Horizon API port (HTTP) This is the primary port you need.
+      - "31401:8000"
+      # The following ports can be exposed only if you need them.
+      # Blockchain protocol port for incoming traffic from other peers
+      - "31402:31402"
+      # Blockchain history port
+      - "31403:1570"
+      # Blockchain protocol local management port (HTTP)
+      # We strongly recommend never exposing this port for security. Best to interact from the container.
+      # - "11626:11626"
+    command: ["--mainnet --enable-auto-migrations"]
+    restart: unless-stopped

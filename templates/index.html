@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pi Node Yönetim Arayüzü</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="background-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+
+    <div class="container">
+        <div class="glass-panel">
+            <header>
+                <div class="logo-container">
+                    <svg class="pi-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM15.5 15.5C15.5 16.33 14.83 17 14 17C13.17 17 12.5 16.33 12.5 15.5V9.5H10.5V15.5C10.5 16.33 9.83 17 9 17C8.17 17 7.5 16.33 7.5 15.5V8H6V6H18V8H15.5V15.5Z" fill="url(#paint0_linear)"/>
+                        <defs>
+                            <linearGradient id="paint0_linear" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#F9A826"/>
+                                <stop offset="1" stop-color="#E85D04"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <h1>Pi Node UI</h1>
+                </div>
+                <p class="subtitle">Uzak Sunucu Yapılandırma Paneli (192.168.0.10)</p>
+            </header>
+
+            <main>
+                <div class="form-group">
+                    <label for="jsonInput">user-preferences.json İçeriği</label>
+                    <p class="help-text">Masaüstü uygulamanızdan kopyaladığınız JSON içeriğini (UUID) aşağıya yapıştırın.</p>
+                    <div class="editor-container">
+                        <textarea id="jsonInput" placeholder='{\n  "uuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"\n}'></textarea>
+                    </div>
+                </div>
+
+                <div id="notification" class="notification hidden">
+                    <span class="icon"></span>
+                    <span class="message"></span>
+                </div>
+
+                <button id="saveBtn" class="primary-btn">
+                    <span class="btn-text">Kaydet ve Senkronize Et</span>
+                    <div class="spinner hidden"></div>
+                </button>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('saveBtn').addEventListener('click', async () => {
+            const jsonContent = document.getElementById('jsonInput').value;
+            const btn = document.getElementById('saveBtn');
+            const btnText = btn.querySelector('.btn-text');
+            const spinner = btn.querySelector('.spinner');
+            const notification = document.getElementById('notification');
+            const icon = notification.querySelector('.icon');
+            const message = notification.querySelector('.message');
+
+            if (!jsonContent.trim()) {
+                showNotification('error', 'Lütfen JSON içeriğini girin.');
+                return;
+            }
+
+            // Buton yükleniyor durumuna geçer
+            btn.disabled = true;
+            btnText.textContent = 'Bağlanıyor...';
+            spinner.classList.remove('hidden');
+            notification.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ content: jsonContent })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('success', result.message);
+                } else {
+                    showNotification('error', result.message);
+                }
+            } catch (error) {
+                showNotification('error', 'Sunucu ile iletişim kurulamadı: ' + error.message);
+            } finally {
+                // Butonu eski haline getir
+                btn.disabled = false;
+                btnText.textContent = 'Kaydet ve Senkronize Et';
+                spinner.classList.add('hidden');
+            }
+        });
+
+        function showNotification(type, text) {
+            const notification = document.getElementById('notification');
+            const icon = notification.querySelector('.icon');
+            const message = notification.querySelector('.message');
+
+            notification.className = `notification ${type}`;
+            message.textContent = text;
+            
+            if (type === 'success') {
+                icon.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+            } else {
+                icon.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+            }
+        }
+    </script>
+</body>
+</html>
