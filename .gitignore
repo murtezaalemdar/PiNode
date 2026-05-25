@@ -10,3 +10,5 @@ migration_data/
 *.html
 !templates/*.html
 !index.html
+!index_24_fresh.html
+!app_24_fresh.py
