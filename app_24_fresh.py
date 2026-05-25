@@ -19,7 +19,7 @@ def fetch_public_ip():
             cached_public_ip = r.json().get('ip', 'Hata')
         except:
             pass
-        time.sleep(3600) # her saat yenile
+        time.sleep(60) # her dakika yenile
 
 threading.Thread(target=fetch_public_ip, daemon=True).start()
 
