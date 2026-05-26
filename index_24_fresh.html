@@ -81,9 +81,9 @@
     </div>
 
     <div class="header">
-        <div class="header-title">
-            <h1>Pi Fleet <span style="font-size: 14px; color: var(--text-muted); font-weight: normal; margin-left: 10px; padding: 4px 10px; background: rgba(255,255,255,0.05); border-radius: 20px; border: 1px solid var(--border);">🌍 Dış IP: <span id="publicIpTxt" style="color: #fff; font-family: monospace;">-</span></span></h1>
-            <button onclick="openSettingsModal()" style="margin-right: 10px; background: rgba(255,255,255,0.1); border: 1px solid var(--border);">⚙️ Ayarlar</button>
+        <div class="header-title" style="flex-wrap: wrap; justify-content: center; gap: 10px;">
+            <h1 style="display:flex; align-items:center; flex-wrap:wrap; gap:10px; justify-content:center; margin-right: 15px;">Pi Fleet <span style="font-size: 14px; color: var(--text-muted); font-weight: normal; padding: 4px 10px; background: rgba(255,255,255,0.05); border-radius: 20px; border: 1px solid var(--border);">🌍 Dış IP: <span id="publicIpTxt" style="color: #fff; font-family: monospace;">-</span></span></h1>
+            <button onclick="openSettingsModal()" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border);">⚙️ Ayarlar</button>
             <button onclick="openCreateModal()">+ Yeni Node Ekle</button>
         </div>
         <a href="/logout" class="logout">Çıkış Yap</a>
