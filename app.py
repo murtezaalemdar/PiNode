@@ -189,8 +189,9 @@ def get_nodes():
         detail = ""
         
         try:
-            api_port = f"{port_prefix}1"
-            r = requests.get(f'http://localhost:{api_port}/', timeout=5)
+            api_port = base_port if base_port else f"{port_prefix}1"
+            target_ip = bind_ip if bind_ip else "localhost"
+            r = requests.get(f'http://{target_ip}:{api_port}/', timeout=5)
             if r.status_code == 200:
                 data = r.json()
                 hz_ledger = data.get("core_latest_ledger", data.get("ingest_latest_ledger", 0))
