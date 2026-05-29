@@ -227,7 +227,7 @@
                 document.getElementById('sysRam').textContent = data.ram_percent;
                 document.getElementById('sysRamSub').textContent = `${data.ram_used} / ${data.ram_total}`;
                 document.getElementById('sysDisk').textContent = data.disk_percent;
-                document.getElementById('sysDiskIo').textContent = `Kullanım: ${data.disk_used} / ${data.disk_total} | Meşguliyet: ${data.disk_busy || '0%'}`;
+                document.getElementById('sysDiskIo').textContent = `Kullanım: ${data.disk_used} / ${data.disk_total} | Meşguliyet: ${data.disk_io || '0%'}`;
                 document.getElementById('sysTemp').textContent = data.temp;
                 document.getElementById('publicIpTxt').textContent = data.public_ip || '-';
             } catch(e) { console.error("System load error:", e); }
@@ -258,8 +258,8 @@
                             </div>
                             <div class="card-body">
                                 <div class="stat-row">
-                                    <span class="stat-label">Port Bloğu:</span>
-                                    <span class="stat-value">${node.port_prefix}1 - ${node.port_prefix}3</span>
+                                    <span class="stat-label">Bağlantı (Ağ / Port):</span>
+                                    <span class="stat-value">${node.bind_ip ? node.bind_ip : 'Bekliyor...'} <br><small style="color:var(--primary);">${node.base_port ? node.base_port + ' - ' + (node.base_port+2) : node.port_prefix + '1 - ' + node.port_prefix + '3'}</small></span>
                                 </div>
                                 <div class="stat-row">
                                     <span class="stat-label">Erişilebilirlik (Availability):</span>
@@ -380,7 +380,7 @@
 
         loadSystem();
         loadNodes();
-        setInterval(() => { loadSystem(); loadNodes(); }, 5000);
+        setInterval(() => { loadSystem(); loadNodes(); }, 15000);
     </script>
 </body>
 </html>
