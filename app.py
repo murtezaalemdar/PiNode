@@ -215,9 +215,11 @@ def get_nodes():
             status_array = info_data.get('status', [])
             detail = status_array[0] if status_array else ""
             
-            core_ledger = info_data.get('ledger', {}).get('num', 0)
-            if hz_ledger == 0 and core_ledger > 0:
+            core_ledger = info_data.get('ledger', {}).get('num')
+            if core_ledger:
                 sync_status = f"Ledger: {core_ledger}"
+            elif hz_ledger:
+                sync_status = f"Ledger: {hz_ledger} (Hz)"
         except Exception as e:
             pass
 
