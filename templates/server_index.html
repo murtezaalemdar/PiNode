@@ -282,8 +282,8 @@
                                 </div>
                                 <div class="stat-row">
                                     <span class="stat-label">Kimlik (UUID):</span>
-                                    <span class="stat-value" style="font-size:12px; max-width: 150px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: ${node.uuid !== 'Missing' ? 'var(--secondary)' : 'var(--danger)'}">
-                                        ${node.uuid !== 'Missing' ? '✅ Yüklü' : '❌ Tanımsız'}
+                                    <span class="stat-value" style="font-size:12px; max-width: 150px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                        ${node.uuid ? '✅ Yüklü' : '❌ Tanımsız'}
                                     </span>
                                 </div>
                             </div>

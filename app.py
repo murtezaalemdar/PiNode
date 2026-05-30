@@ -54,10 +54,10 @@ def get_capsule_name(port_prefix, bind_ip=None, base_port=None):
         for line in out.splitlines():
             if 'pinode_capsule_' in line:
                 if bind_ip and base_port:
-                    if re.search(rf'{bind_ip}:{base_port}[->]', line):
+                    if f"{bind_ip}:{base_port}" in line:
                         return line.split('\t')[0]
                 elif port_prefix:
-                    if re.search(rf':{port_prefix}1[->]', line):
+                    if f":{port_prefix}1" in line:
                         return line.split('\t')[0]
     except Exception:
         pass
@@ -167,19 +167,19 @@ def get_nodes():
         except Exception:
             status = "Hata"
             
-        uuid_val = "Tanımsız"
+        uuid_val = "Missing"
         try:
-            out = subprocess.check_output(['docker', 'exec', capsule_name, 'cat', '/home/pi-node/user-preferences.json'], text=True, timeout=5)
-            if out.strip().startswith('{'):
-                try: 
+            out = subprocess.check_output(['docker', 'exec', capsule_name, 'cat', '/home/pi-node/user-preferences.json'], text=True, stderr=subprocess.DEVNULL)
+            if out.strip():
+                try:
                     import json as tmp_json
                     uuid_val = tmp_json.loads(out).get('uuid', 'Kayıtlı')
-                except: 
+                except:
                     uuid_val = "Şifreli (Kayıtlı)"
-            elif out.strip():
-                uuid_val = "Şifreli (Kayıtlı)"
+            else:
+                uuid_val = "Missing"
         except:
-            pass
+            uuid_val = "Missing"
             
         sync_status = "Bilinmiyor"
         state = "-"
@@ -200,8 +200,14 @@ def get_nodes():
             sync_status = "Erişilemiyor"
             
         try:
-            out = subprocess.check_output(['docker', 'exec', capsule_name, 'docker', 'exec', 'mainnet', 'curl', '-s', 'http://localhost:11626/info'], text=True, timeout=10)
-            info_data = json.loads(out).get('info', {})
+            try:
+                out = subprocess.check_output(['docker', 'exec', capsule_name, 'docker', 'exec', 'mainnet', 'curl', '-s', '-m', '5', 'http://localhost:11726/info'], text=True, timeout=10)
+                info_data = json.loads(out).get('info', {})
+                if not info_data: raise Exception()
+            except:
+                out = subprocess.check_output(['docker', 'exec', capsule_name, 'docker', 'exec', 'mainnet', 'curl', '-s', '-m', '5', 'http://localhost:11626/info'], text=True, timeout=10)
+                info_data = json.loads(out).get('info', {})
+                
             state = info_data.get('state', '-')
             protocol = info_data.get('protocol_version', '-')
             incoming = info_data.get('peers', {}).get('authenticated_count', 0)

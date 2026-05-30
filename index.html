@@ -621,7 +621,7 @@
 
         loadSystem();
         loadNodes();
-        setInterval(() => { loadSystem(); loadNodes(); }, 4000);
+        setInterval(() => { loadSystem(); loadNodes(); }, 15000);
     
         function openSettingsModal() {
             document.getElementById('settingsModal').style.display = 'flex';
@@ -726,7 +726,7 @@
             
             <div class="form-group" style="margin-top:20px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
                 <label>Kullanıcı Şifresi Değiştir (Giriş Şifresi)</label>
-                <input type="text" id="newAdminPassword" placeholder="Yeni Şifre Yazın..." style="margin-bottom:10px;">
+                <input type="password" id="newAdminPassword" placeholder="Yeni Şifre Yazın..." style="margin-bottom:10px;">
                 <button onclick="changePassword()" style="width:100%; background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold;">Şifreyi Güncelle</button>
             </div>
             <button class="btn-cancel" onclick="document.getElementById('settingsModal').style.display='none'" style="margin-top: 20px; width: 100%;">Kapat</button>

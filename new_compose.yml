@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # IP 1: 192.168.0.24
+  pinode_capsule_1:
+    image: docker:24.0.7-dind
+    container_name: pinode_capsule_1
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+    ports:
+      - "192.168.0.24:31401-31403:31401-31403"
+    volumes:
+      - pinode_data_1:/home/pi-node
+      - pinode_certs_1:/certs/client
+    restart: unless-stopped
+
+  pinode_capsule_2:
+    image: docker:24.0.7-dind
+    container_name: pinode_capsule_2
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+    ports:
+      - "192.168.0.24:31404-31406:31401-31403"
+    volumes:
+      - pinode_data_2:/home/pi-node
+      - pinode_certs_2:/certs/client
+    restart: unless-stopped
+
+  pinode_capsule_3:
+    image: docker:24.0.7-dind
+    container_name: pinode_capsule_3
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+    ports:
+      - "192.168.0.24:31407-31409:31401-31403"
+    volumes:
+      - pinode_data_3:/home/pi-node
+      - pinode_certs_3:/certs/client
+    restart: unless-stopped
+
+  # IP 2: 192.168.0.80
+  pinode_capsule_4:
+    image: docker:24.0.7-dind
+    container_name: pinode_capsule_4
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+    ports:
+      - "192.168.0.80:31401-31403:31401-31403"
+    volumes:
+      - pinode_data_4:/home/pi-node
+      - pinode_certs_4:/certs/client
+    restart: unless-stopped
+
+  pinode_capsule_5:
+    image: docker:24.0.7-dind
+    container_name: pinode_capsule_5
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+    ports:
+      - "192.168.0.80:31404-31406:31401-31403"
+    volumes:
+      - pinode_data_5:/home/pi-node
+      - pinode_certs_5:/certs/client
+    restart: unless-stopped
+
+  pinode_capsule_6:
+    image: docker:24.0.7-dind
+    container_name: pinode_capsule_6
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+    ports:
+      - "192.168.0.80:31407-31409:31401-31403"
+    volumes:
+      - pinode_data_6:/home/pi-node
+      - pinode_certs_6:/certs/client
+    restart: unless-stopped
+
+volumes:
+  pinode_data_1:
+  pinode_certs_1:
+  pinode_data_2:
+  pinode_certs_2:
+  pinode_data_3:
+  pinode_certs_3:
+  pinode_data_4:
+  pinode_certs_4:
+  pinode_data_5:
+  pinode_certs_5:
+  pinode_data_6:
+  pinode_certs_6:
